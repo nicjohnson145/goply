@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/fluxcd/pkg/ssa"
+	"github.com/samber/lo"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/discovery/cached/memory"
@@ -14,8 +16,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"github.com/samber/lo"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -109,7 +109,7 @@ func getObjects(yaml string) ([]*unstructured.Unstructured, error) {
 }
 
 type Reconciler struct {
-	mgr *ssa.ResourceManager
+	mgr     *ssa.ResourceManager
 	logFunc func(string)
 }
 
@@ -220,7 +220,7 @@ func (r *Reconciler) delete(items []*unstructured.Unstructured, opts DeleteOpts)
 		r.log("waiting for resources to terminate")
 		err = r.mgr.WaitForTermination(items, ssa.WaitOptions{
 			Interval: 2 * time.Second,
-			Timeout: *opts.WaitTimeout,
+			Timeout:  *opts.WaitTimeout,
 		})
 	}
 

@@ -1,10 +1,10 @@
 package goply
 
 import (
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"sigs.k8s.io/cli-utils/pkg/object"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"github.com/samber/lo"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/cli-utils/pkg/object"
 )
 
 type Inventory struct {
@@ -20,8 +20,8 @@ func (i Inventory) ItemsToRemove(newInv Inventory) []*unstructured.Unstructured 
 		if !newSet.Contains(i.ID()) {
 			obj := &unstructured.Unstructured{}
 			obj.SetGroupVersionKind(schema.GroupVersionKind{
-				Group: i.ObjMetadata.GroupKind.Group,
-				Kind: i.ObjMetadata.GroupKind.Kind,
+				Group:   i.ObjMetadata.GroupKind.Group,
+				Kind:    i.ObjMetadata.GroupKind.Kind,
 				Version: i.GroupVersion,
 			})
 			obj.SetName(i.Name)

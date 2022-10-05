@@ -2,10 +2,11 @@ package goply
 
 import (
 	"testing"
-	"github.com/stretchr/testify/require"
-	"github.com/samber/lo"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
 	"github.com/lithammer/dedent"
+	"github.com/samber/lo"
+	"github.com/stretchr/testify/require"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 func inventoryFromYaml(t *testing.T, yaml string) Inventory {
