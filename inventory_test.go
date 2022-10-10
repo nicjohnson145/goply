@@ -11,7 +11,7 @@ import (
 
 func inventoryFromYaml(t *testing.T, yaml string) Inventory {
 	t.Helper()
-	objs, err := getObjects(yaml)
+	objs, err := GetObjects(yaml)
 	require.NoError(t, err)
 
 	return Inventory{

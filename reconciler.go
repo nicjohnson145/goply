@@ -79,7 +79,7 @@ func getResourceStages(yaml string) ([]*unstructured.Unstructured, []*unstructur
 	stageOne := []*unstructured.Unstructured{}
 	stageTwo := []*unstructured.Unstructured{}
 
-	allObjects, err := getObjects(yaml)
+	allObjects, err := GetObjects(yaml)
 	if err != nil {
 		return stageOne, stageTwo, fmt.Errorf("error decoding yaml to unstructured: %w", err)
 	}
@@ -99,7 +99,7 @@ func getResourceStages(yaml string) ([]*unstructured.Unstructured, []*unstructur
 	return stageOne, stageTwo, nil
 }
 
-func getObjects(yaml string) ([]*unstructured.Unstructured, error) {
+func GetObjects(yaml string) ([]*unstructured.Unstructured, error) {
 	allObjects, err := ssa.ReadObjects(strings.NewReader(yaml))
 	if err != nil {
 		return []*unstructured.Unstructured{}, fmt.Errorf("error decoding yaml to unstructured: %w", err)
@@ -228,7 +228,7 @@ func (r *Reconciler) delete(items []*unstructured.Unstructured, opts DeleteOpts)
 }
 
 func (r *Reconciler) Delete(yaml string, opts DeleteOpts) error {
-	allObjects, err := getObjects(yaml)
+	allObjects, err := GetObjects(yaml)
 	if err != nil {
 		return fmt.Errorf("error decoding yaml to unstructured: %w", err)
 	}
