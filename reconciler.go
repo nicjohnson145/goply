@@ -70,6 +70,14 @@ func NewReconciler(config *ReconcilerConfig) (*Reconciler, error) {
 }
 
 func newResourceManager(kubeconf string, log *logr.Logger) (*ssa.ResourceManager, error) {
+	var l logr.Logger
+	if log == nil {
+		l = logr.New(logf.NullLogSink{})
+	} else {
+		l = *log
+	}
+	logf.SetLogger(l)
+
 	restConfig, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeconf))
 	if err != nil {
 		return nil, fmt.Errorf("error getting rest config: %w", err)
@@ -79,14 +87,6 @@ func newResourceManager(kubeconf string, log *logr.Logger) (*ssa.ResourceManager
 	if err != nil {
 		return nil, fmt.Errorf("error building controller runtime client: %w", err)
 	}
-
-	var l logr.Logger
-	if log == nil {
-		l = logr.New(logf.NullLogSink{})
-	} else {
-		l = *log
-	}
-	logf.SetLogger(l)
 
 	dc, err := discovery.NewDiscoveryClientForConfig(restConfig)
 	if err != nil {
