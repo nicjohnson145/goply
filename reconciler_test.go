@@ -54,7 +54,9 @@ func basicSetup(t *testing.T, namespace string) (*Reconciler, *kubernetes.Client
 	}
 
 	// Build a reconciler
-	r, err := NewReconciler(string(kubeconfigBytes))
+	r, err := NewReconciler(&ReconcilerConfig{
+		Kubeconfig: string(kubeconfigBytes),
+	})
 	require.NoError(t, err)
 
 	r.SetLogFunc(func(s string) { log.Trace(s) })

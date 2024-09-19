@@ -2,12 +2,16 @@ package goply
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/fluxcd/cli-utils/pkg/kstatus/polling"
 	"github.com/fluxcd/pkg/ssa"
+	"github.com/fluxcd/pkg/ssa/normalize"
 	ssautils "github.com/fluxcd/pkg/ssa/utils"
+	"github.com/go-logr/logr"
 	"github.com/samber/lo"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -15,9 +19,13 @@ import (
 	"k8s.io/client-go/discovery/cached/memory"
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
-	"github.com/fluxcd/pkg/ssa/normalize"
-	"github.com/fluxcd/cli-utils/pkg/kstatus/polling"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+)
+
+var (
+	ErrNoConfigError     = errors.New("must supply config")
+	ErrNoKubeconfigError = errors.New("kubeconfig is required")
 )
 
 const (
@@ -38,8 +46,20 @@ type DeleteOpts struct {
 	SkipWait    bool
 }
 
-func NewReconciler(kubeconfig string) (*Reconciler, error) {
-	mgr, err := newResourceManager(kubeconfig)
+type ReconcilerConfig struct {
+	Kubeconfig string
+	Logger     *logr.Logger
+}
+
+func NewReconciler(config *ReconcilerConfig) (*Reconciler, error) {
+	if config == nil {
+		return nil, ErrNoConfigError
+	}
+	if config.Kubeconfig == "" {
+		return nil, ErrNoKubeconfigError
+	}
+
+	mgr, err := newResourceManager(config.Kubeconfig, config.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +69,7 @@ func NewReconciler(kubeconfig string) (*Reconciler, error) {
 	}, nil
 }
 
-func newResourceManager(kubeconf string) (*ssa.ResourceManager, error) {
+func newResourceManager(kubeconf string, log *logr.Logger) (*ssa.ResourceManager, error) {
 	restConfig, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeconf))
 	if err != nil {
 		return nil, fmt.Errorf("error getting rest config: %w", err)
@@ -59,6 +79,14 @@ func newResourceManager(kubeconf string) (*ssa.ResourceManager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error building controller runtime client: %w", err)
 	}
+
+	var l logr.Logger
+	if log == nil {
+		l = logr.New(logf.NullLogSink{})
+	} else {
+		l = *log
+	}
+	logf.SetLogger(l)
 
 	dc, err := discovery.NewDiscoveryClientForConfig(restConfig)
 	if err != nil {
