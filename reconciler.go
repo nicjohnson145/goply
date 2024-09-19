@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/pkg/ssa"
+	ssautils "github.com/fluxcd/pkg/ssa/utils"
 	"github.com/samber/lo"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -14,7 +15,8 @@ import (
 	"k8s.io/client-go/discovery/cached/memory"
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
-	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
+	"github.com/fluxcd/pkg/ssa/normalize"
+	"github.com/fluxcd/cli-utils/pkg/kstatus/polling"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -84,12 +86,12 @@ func getResourceStages(yaml string) ([]*unstructured.Unstructured, []*unstructur
 		return stageOne, stageTwo, fmt.Errorf("error decoding yaml to unstructured: %w", err)
 	}
 
-	if err := ssa.SetNativeKindsDefaults(allObjects); err != nil {
+	if err := normalize.UnstructuredList(allObjects); err != nil {
 		return stageOne, stageTwo, fmt.Errorf("error setting defaults: %w", err)
 	}
 
 	for _, obj := range allObjects {
-		if ssa.IsClusterDefinition(obj) {
+		if ssautils.IsClusterDefinition(obj) {
 			stageOne = append(stageOne, obj)
 		} else {
 			stageTwo = append(stageTwo, obj)
@@ -100,7 +102,7 @@ func getResourceStages(yaml string) ([]*unstructured.Unstructured, []*unstructur
 }
 
 func GetObjects(yaml string) ([]*unstructured.Unstructured, error) {
-	allObjects, err := ssa.ReadObjects(strings.NewReader(yaml))
+	allObjects, err := ssautils.ReadObjects(strings.NewReader(yaml))
 	if err != nil {
 		return []*unstructured.Unstructured{}, fmt.Errorf("error decoding yaml to unstructured: %w", err)
 	}
